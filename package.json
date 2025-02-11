@@ -1,6 +1,7 @@
 {
   "name": "hybird-cloud",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,5 +17,13 @@
     "url": "https://github.com/Yazeedj/Hybird-Cloud/issues"
   },
   "homepage": "https://github.com/Yazeedj/Hybird-Cloud#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@faker-js/faker": "^9.4.0",
+    "amqplib": "^0.10.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.10.0"
+  }
 }

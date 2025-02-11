@@ -1,0 +1,23 @@
+{
+
+    "version": "0.2.0",
+    "configurations": [
+        
+
+        {
+            "name": "Launch App",
+            "request": "launch",
+            "type": "node",
+            "program": "${workspaceFolder}/src/index.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+      },
+      "restart": true,
+      "console": "integratedTerminal"
+
+        }
+    ]
+}
