@@ -1,28 +1,37 @@
 import amqp from "amqplib";
 import Sensor from "./db.js"; // Import MongoDB model
+import { maskCoordinates, hashTimestamp, encryptData } from "./security.js"; // Import security functions
 
-const RABBITMQ_URL = "amqp://localhost"; // RabbitMQ server URL
-const QUEUE_NAME = "sensor_data"; // Queue name
+const RABBITMQ_URL = "amqp://localhost";
+const QUEUE_NAME = "sensor_data";
 
-async function publishSensorData() {
+async function publishAnonymizedData() {
   try {
     // 🔹 Connect to RabbitMQ
     const connection = await amqp.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE_NAME, { durable: true });
 
-    // 🔹 Fetch the latest sensor data from MongoDB
-    const sensorData = await Sensor.findOne().sort({ timestamp: -1 }); // Fetch the latest entry
+    // 🔹 Fetch latest sensor data
+    const sensorData = await Sensor.findOne().sort({ timestamp: -1 });
 
-    if (sensorData) { // If data is available
-      const message = JSON.stringify(sensorData); // Convert to JSON string
-      channel.sendToQueue(QUEUE_NAME, Buffer.from(message), { persistent: true }); // Send to Queue
-      console.log(`✅ Sent to Queue from Producer ${message}`); // Log the message
+    if (sensorData) {
+      // 🔹 Anonymize the data
+      const anonymizedData = {
+        location: maskCoordinates(sensorData.latitude, sensorData.longitude), // Mask location
+        temperature: sensorData.temperature, // Keep temperature as-is
+        timestamp: hashTimestamp(sensorData.timestamp) // Hash timestamp
+      };
+
+      // 🔹 Encrypt the data before sending
+      const encryptedMessage = encryptData(JSON.stringify(anonymizedData));
+
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(encryptedMessage), { persistent: true });
+      console.log(`✅ Sent to Queue (Anonymized & Encrypted):`, anonymizedData);
     } else {
-      console.log("⚠️ No sensor data available."); // Log if no data is available
+      console.log("⚠️ No sensor data available.");
     }
 
-    // 🔹 Close connection after sending
     setTimeout(() => {
       connection.close();
     }, 500);
@@ -32,4 +41,4 @@ async function publishSensorData() {
 }
 
 // 🔹 Run the producer every 5 seconds
-setInterval(publishSensorData, 5000);
+setInterval(publishAnonymizedData, 5000);
